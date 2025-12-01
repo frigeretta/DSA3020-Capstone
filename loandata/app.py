@@ -79,6 +79,7 @@ with st.form("loan_application_form", clear_on_submit=False):
         loan_amount = st.number_input("Loan Amount Requested ($)", min_value=1000.0, value=150000.0, step=5000.0)
         loan_term = st.selectbox("Loan Term (Months)", [360, 240, 180, 120, 84, 60, 36], index=0)
         property_area = st.selectbox("Property Area", ["Urban", "Semiurban", "Rural"], index=1)
+        credit_history = st.selectbox("Credit History Status", ["Good", "Bad"], index=0)
 
     submitted = st.form_submit_button("🔍 Predict Eligibility", use_container_width=True)
 
@@ -123,7 +124,7 @@ if submitted:
             'loan_amount': loan_amount,
             'loan_term': loan_term,
             'property_area': property_area,
-            'credit_history': 'Good'
+            'credit_history': credit_history
         }
 
         X = encode_input(input_data)
