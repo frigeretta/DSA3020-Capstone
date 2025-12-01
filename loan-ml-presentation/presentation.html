@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LoanGuardPro – Comparative Machine Learning Analysis
+for Loan Approval Predictions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Reveal.js CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.3/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.3/theme/white.min.css" id="theme">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.3/reveal.min.js"></script>
+
+  <!-- Brand styling -->
+  <style>
+    :root {
+      /* Updated to purple–pink–blue theme */
+      --brand-primary: #7f5af0;   /* Purple */
+      --brand-secondary: #ff6bb5; /* Pink */
+      --brand-tertiary: #4fd1ff;  /* Blue */
+
+      --gradient-hero: linear-gradient(135deg, #7f5af0, #ff6bb5, #4fd1ff);
+      --gradient-soft: linear-gradient(
+        135deg,
+        rgba(127, 90, 240, 0.12),
+        rgba(255, 107, 181, 0.12),
+        rgba(79, 209, 255, 0.12)
+      );
+    }
+
+    /* Body background for overall vibe */
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(127,90,240,0.25), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(79,209,255,0.25), transparent 55%),
+        #0f172a;
+      color: #111827;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .reveal {
+      color: #111827;
+    }
+
+    /* Global slide look */
+    .reveal .slides section {
+      font-size: 1.05rem;
+      background: #f9fafb;
+      background-image: var(--gradient-soft);
+      border-radius: 18px;
+      padding: 26px 32px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.28);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Title slide with strong gradient */
+    .title-slide {
+      background: var(--gradient-hero) !important;
+      color: #fff;
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.6);
+    }
+
+    .title-slide h1,
+    .title-slide h3,
+    .title-slide p {
+      color: #fff;
+      text-shadow: 0 3px 12px rgba(0,0,0,0.45);
+    }
+
+    .section-title {
+      color: var(--brand-primary);
+      font-size: 2.6rem;
+      text-shadow: 0 2px 10px rgba(127,90,240,0.3);
+    }
+
+    .accent {
+      color: var(--brand-secondary);
+      font-weight: 700;
+      text-shadow: 0 1px 8px rgba(255,107,181,0.35);
+    }
+
+    .reveal .slides img {
+      border-radius: 10px;
+      box-shadow: 0 8px 26px rgba(15, 23, 42, 0.45);
+      max-height: 480px;
+      border: 1px solid rgba(148,163,184,0.5);
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    /* Optional: tweak bullets to match theme */
+    .reveal ul li::marker,
+    .reveal ol li::marker {
+      color: var(--brand-primary);
+    }
+
+    /* Make fragments feel smoother */
+    .reveal .fragment {
+      transition: all 0.4s ease-out;
+    }
+    .reveal .fragment.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ===================== TITLE ===================== -->
+<section class="title-slide" data-transition="zoom">
+  <h1>Loan Approval Prediction</h1>
+  <h3>Comparative Analysis of Machine Learning Models</h3>
+  <p><strong>Alexia Mbagaya • Collins Gichangi • Rita Magu</strong></p>
+  <p>DSA3020 – Principles of Machine Learning</p>
+</section>
+
+<!-- ===================== OVERVIEW ===================== -->
+<section data-transition="fade">
+  <h2 class="section-title">AGENDA</h2>
+  <ul>
+    <li class="fragment">Background & Problem</li>
+    <li class="fragment">CRISP-DM Methodology</li>
+    <li class="fragment">Data & Exploratory Analysis</li>
+    <li class="fragment">Model Development</li>
+    <li class="fragment">Comparative Results</li>
+    <li class="fragment">Deployment & Future Work</li>
+  </ul>
+</section>
+
+<!-- ===================== INTRODUCTION ===================== -->
+<section data-transition="fade">
+  <h2 class="section-title">Background</h2>
+  <p class="fragment">Loans are a major source of bank revenue and a key driver of economic growth.</p>
+  <p class="fragment">Manual loan assessment is <span class="accent">slow, costly, and subjective</span>.</p>
+
+  <p class="fragment">Lending exposes the bank to credit risk. They need to evaluate one's credit history, income level and debt-to-income ratio. This helps in guaranteeing that only those that can pay back are issued with loans.</p>
+
+  <p class="fragment">In this presentation we will explore how machine learning can automate and standardize loan approvals.</p>
+</section>
+
+<section>
+  <h2 class="section-title">Problem Statement</h2>
+  <ul>
+    <li class="fragment">High volume of loan applications processed manually.</li>
+    <li class="fragment">Risk of inconsistent decisions and human bias.</li>
+    <li class="fragment">Need for faster, scalable and objective credit risk assessment resulting in increased operational efficiency and improved client experience. </li>
+  </ul>
+  <p class="fragment"><span class="accent">Goal:</span> Build and compare ML models that predict loan approval (Y/N) using historical applicant data.</p>
+</section>
+
+<!-- ===================== LITERATURE REVIEW ===================== -->
+<section>
+  <h2 class="section-title">Core Algorithms</h2>
+</section>
+
+<section>
+  <h3>Logistic Regression</h3>
+  <ul>
+    <li class="fragment">Generalized linear model for binary outcomes.</li>
+    <li class="fragment">Uses a sigmoid function to model P(Loan Approved = 1).</li>
+    <li class="fragment">Highly interpretable; good baseline for structured data.</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Decision Tree Classifier</h3>
+  <ul>
+    <li class="fragment">Tree structure with splits based on feature thresholds.</li>
+    <li class="fragment">Easy to visualize and explain to non-technical users.</li>
+    <li class="fragment">Prone to overfitting without pruning / constraints.</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Gradient Boosting Machine (GBM)</h3>
+  <ul>
+    <li class="fragment">Ensemble of weak learners (shallow trees).</li>
+    <li class="fragment">Each new tree fits the residual errors of the previous model.</li>
+    <li class="fragment">Often very accurate, but sensitive to hyperparameters and small datasets.</li>
+  </ul>
+</section>
+
+<!-- ===================== CRISP-DM ===================== -->
+<section>
+  <h2 class="section-title">Methodology – CRISP-DM</h2>
+</section>
+
+<section>
+  <h3>CRISP-DM Phases</h3>
+  <ol>
+    <li class="fragment"><strong>Business Understanding</strong> – We understood that the problem in the financial industry is that loan approvals take too long because of how manual the process is. We sought to improve loan approval efficiency & consistency.</li>
+    <li class="fragment"><strong>Data Understanding</strong> – We used a Kaggle Loan Approval dataset (614 rows, 13 columns). We performed exploratory data analysis on the data so that we could understand how our data is like.</li>
+    <li class="fragment"><strong>Data Preparation</strong> – This is preparinhg the data before model fitting. We performed cleaning, imputation, encoding, scaling.</li>
+    <li class="fragment"><strong>Modeling</strong> – Fitting the appropriate models that we used: Logistic Regression, Decision Tree, Gradient Boosting.</li>
+    <li class="fragment"><strong>Evaluation</strong> – How well did our model do ? We measured the Accuracy, Precision, Recall, F1, ROC–AUC.</li>
+    <li class="fragment"><strong>Deployment</strong> – Testing our model with different types of loan applications using Streamlit app for real-time predictions.</li>
+  </ol>
+</section>
+
+<!-- ===================== DATA DESCRIPTION ===================== -->
+<section>
+  <h2 class="section-title">Data Description</h2>
+</section>
+
+<section>
+  <h3>Dataset Overview</h3>
+  <ul>
+    <li class="fragment">Source: Kaggle – Loan Approval Prediction dataset.</li>
+    <li class="fragment">614 records after cleaning.</li>
+    <li class="fragment">Features: demographic, financial, and credit history attributes.</li>
+    <li class="fragment">Target: <code>Loan_Status</code> (Y = approved, N = rejected).</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Preprocessing Steps</h3>
+  <ul>
+    <li class="fragment">Dropped non-informative ID column.</li>
+    <li class="fragment">Regression Iterative imputation to calculate for the missing values (both numeric & categorical).</li>
+    <li class="fragment">LabelEncoding for categorical features; target encoded as 0/1.</li>
+    <li class="fragment">StandardScaler applied to numeric features for LR.</li>
+  </ul>
+</section>
+
+<!-- ===================== EDA – NUMERIC ===================== -->
+<section>
+  <h2 class="section-title">Exploratory Data Analysis</h2>
+</section>
+
+<section>
+  <h3>Numeric Feature Distributions</h3>
+  <p class="fragment">ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History</p>
+  <p class="fragment">All show strong right skew or imbalance.</p>
+  <p class="fragment">We visualized these using histograms and KDE curves:</p>
+  <img class="fragment" src="images/Histogram of Numerical cols.png" alt="Numeric histograms">
+</section>
+
+<!-- ===================== EDA – CATEGORICAL ===================== -->
+<section>
+  <h3>Categorical Variables</h3>
+  <p class="fragment">Most applicants are male, married, graduates, and not self-employed.</p>
+  <p class="fragment">Loan approvals (Y) outnumber rejections (N), creating class imbalance.</p>
+  <img class="fragment" src="images/Countplots of categorical cols.png" alt="Categorical histograms">
+</section>
+
+<section>
+  <h3>Approval Rates by Category</h3>
+  <p class="fragment">We compared approval vs rejection counts for each category.</p>
+  <ul>
+    <li class="fragment">Married, graduates, and applicants with 0 dependents show higher approval rates.</li>
+    <li class="fragment">Semiurban properties have slightly higher approvals than urban and rural.</li>
+  </ul>
+  <img class="fragment" src="images/Categorical_cols vs Loan Status.png" alt="Categorical vs Loan_Status">
+</section>
+
+<section>
+  <h3>Correlation Heatmap</h3>
+  <ul>
+    <li class="fragment">Strongest predictor of approval: <span class="accent">Credit_History</span> (≈0.57 with Loan_Status).</li>
+    <li class="fragment">ApplicantIncome and LoanAmount are moderately correlated with each other, but weakly with the target.</li>
+    <li class="fragment">Most other correlations are low, suggesting non-linear effects.</li>
+  </ul>
+  
+  <img class="fragment" src="images/correlation heatmap.png" alt="Correlation heatmap">
+</section>
+
+<!-- ===================== MODEL DEVELOPMENT ===================== -->
+<section>
+  <h2 class="section-title">Model Development</h2>
+</section>
+
+<section>
+  <h3>Training Setup</h3>
+  <ul>
+    <li class="fragment">Train–test split: 80% training, 20% testing (stratified by Loan_Status).</li>
+    <li class="fragment">Logistic Regression trained on scaled features.</li>
+    <li class="fragment">Decision Tree & Gradient Boosting trained on original feature scales.</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Hyperparameter Tuning</h3>
+  <ul>
+    <li class="fragment">GridSearchCV with 5-fold cross-validation.</li>
+    <li class="fragment">Search space focused on LR penalty (L1/L2), C, solver, and max_iter.</li>
+    <li class="fragment">Best model: <span class="accent">L1-regularized Logistic Regression</span>.</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Feature Importance (Logistic Regression)</h3>
+  <ul>
+    <li class="fragment">L1 regularization pruned many coefficients to zero.</li>
+    <li class="fragment"><strong>Credit_History</strong> → largest positive weight.</li>
+    <li class="fragment"><strong>Married</strong> → moderate positive contribution.</li>
+    <li class="fragment"><strong>Education</strong> → small effect.</li>
+  </ul>
+</section>
+
+<!-- ===================== COMPARATIVE RESULTS ===================== -->
+<section>
+  <h2 class="section-title">Comparative Results</h2>
+</section>
+
+<section>
+  <h3>Model Performance (Test Set)</h3>
+  <ul>
+    <li class="fragment"><strong>Logistic Regression</strong>  
+      <ul>
+        <li>Accuracy ≈ 85%</li>
+        <li>Recall (Approved class) ≈ 99%</li>
+        <li>F1-score ≈ 0.86</li>
+      </ul>
+    </li>
+    <li class="fragment"><strong>Decision Tree</strong> – lower F1; signs of overfitting.</li>
+    <li class="fragment"><strong>Gradient Boosting</strong> – reasonable performance but did not surpass tuned LR on this dataset.</li>
+  </ul>
+  <img class="fragment" src="images/modelevaluation.png" alt="Correlation heatmap">
+</section>
+
+<section>
+  <h3>Business Interpretation</h3>
+  <ul>
+    <li class="fragment">High recall means eligible customers are rarely rejected.</li>
+    <li class="fragment">Moderate precision implies some risky approvals → needs risk controls.</li>
+    <li class="fragment">Interpretability of LR makes it suitable for regulated banking environments.</li>
+  </ul>
+</section>
+
+<!-- ===================== DEPLOYMENT ===================== -->
+<section>
+  <h2 class="section-title">Deployment</h2>
+</section>
+
+<section>
+  <h3>LoanGuard Pro – Streamlit App</h3>
+  <ul>
+    <li class="fragment">Final LR model and scaler exported using <code>joblib</code>.</li>
+    <li class="fragment">Wrapped in an interactive Streamlit web application.</li>
+    <li class="fragment">Inputs: gender, marital status, income, loan amount, term, property area, credit history.</li>
+    <li class="fragment">Outputs: approval prediction + probability.</li>
+  </ul>
+</section>
+
+<!-- ===================== CONCLUSION & FUTURE WORK ===================== -->
+<section>
+  <h2 class="section-title">Conclusion</h2>
+</section>
+
+<section>
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li class="fragment">Logistic Regression provided the best balance of accuracy, recall, and interpretability.</li>
+    <li class="fragment">Credit history is the dominant driver of loan approval.</li>
+    <li class="fragment">The system can support faster, more consistent decision-making in banks.</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Future Work</h3>
+  <ul>
+    <li class="fragment">Train on larger, more diverse datasets.</li>
+    <li class="fragment">Add advanced models (XGBoost, Random Forests, deep learning).</li>
+    <li class="fragment">Integrate SHAP/LIME for detailed explainability.</li>
+    <li class="fragment">Monitor fairness and bias across demographic groups.</li>
+    <li class="fragment">Deploy as a full microservice in a production environment.</li>
+  </ul>
+</section>
+
+<!-- ===================== THANK YOU ===================== -->
+<section data-transition="zoom">
+  <h1 class="accent">Thank You</h1>
+  <p>Questions?</p>
+</section>
+
+</div>
+</div>
+
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    transition: 'fade',
+    backgroundTransition: 'slide',
+    controls: true,
+    progress: true,
+    fragments: true,
+    keyboard: true,
+    center: true
+  });
+</script>
+</body>
+</html>
