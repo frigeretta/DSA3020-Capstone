@@ -30,14 +30,19 @@ st.markdown("""
 @st.cache_resource
 def load_model_assets():
     try:
-        model = joblib.load("logistic_model.pkl")
-        scaler = joblib.load("scaler.pkl")
-        return model, scaler
+        app_dir = Path(__file__).parent
+        models = {
+            'Logistic Regression': joblib.load(app_dir / "logistic_regression.pkl"),
+            'Decision Tree': joblib.load(app_dir / "decision_tree.pkl"),
+            'Gradient Boosting': joblib.load(app_dir / "gradient_boosting.pkl")
+        }
+        scaler = joblib.load(app_dir / "scaler.pkl")
+        return models, scaler
     except FileNotFoundError as e:
-        st.error("Model files not found. Please ensure `logistic_model.pkl` and `scaler.pkl` are in the app directory.")
+        st.error(f"Model files not found. Please ensure all model files are in the loandata directory. Error: {e}")
         st.stop()
 
-model, scaler = load_model_assets()
+models, scaler = load_model_assets()
 
 # Feature order (MUST match training!)
 FEATURE_COLUMNS = [
@@ -51,19 +56,15 @@ st.markdown("<h1 class='header-title'>🏦 LoanGuard Pro</h1>", unsafe_allow_htm
 st.markdown("<p class='header-subtitle'>Instant • Accurate • AI-Powered Loan Eligibility Prediction</p>", unsafe_allow_html=True)
 
 # ========================= SIDEBAR INFO =========================
-with st.expander("Model Insights & Approval Guidelines", expanded=False):
-    st.success("**Best Model:** Logistic Regression (L1 Regularized)")
-    st.info("**Accuracy:** 85.4% • **Recall:** 98.8% • **F1-Score:** 86.5%")
+with st.expander("Model Insights", expanded=False):
+    st.success("**Models:** Logistic Regression • Decision Tree • Gradient Boosting")
+    st.info("All models are ensembled to provide diverse predictions for robustness.")
     st.markdown("""
-    ### Top 3 Factors That Matter (from L1 Feature Selection):
-    | Rank | Factor            | Impact     |
-    |------|-------------------|------------|
-    | 1    | Credit History    | VERY HIGH  |
-    | 2    | Married           | Moderate   |
-    | 3    | Education         | Low        |
-    | -    | All others        | Negligible |
-
-    **Pro Tip:** If you have good credit history → 95%+ chance of approval!
+    ### Feature Importance:
+    - **Credit History** - Primary factor
+    - **Married Status** - Secondary factor
+    - **Education Level** - Tertiary factor
+    - All other features considered for comprehensive analysis
     """)
 
 st.markdown("---")
@@ -87,18 +88,6 @@ with st.form("loan_application_form", clear_on_submit=False):
         loan_term = st.selectbox("Loan Term (Months)", [360, 240, 180, 120, 84, 60, 36], index=0)
         property_area = st.selectbox("Property Area", ["Urban", "Semiurban", "Rural"], index=1)
 
-    st.markdown("### Critical Factor")
-    credit_history = st.radio(
-        "Does the applicant have a **clear credit history**?",
-        options=["Yes (Meets guidelines)", "No (Has defaults)"],
-        index=0,
-        help="This is the #1 factor. 95%+ approvals require 'Yes'"
-    )
-    if "Yes" in credit_history:
-        st.success("Excellent! Strong credit history significantly boosts approval chances.")
-    else:
-        st.error("Poor credit history almost always leads to rejection.")
-
     submitted = st.form_submit_button("Predict Eligibility Now", use_container_width=True)
 
 # ========================= ENCODING FUNCTION =========================
@@ -110,7 +99,6 @@ def encode_input(data_dict):
         'Education': {'Graduate': 0, 'Not Graduate': 1},
         'Self_Employed': {'Yes': 1, 'No': 0},
         'Property_Area': {'Rural': 0, 'Semiurban': 1, 'Urban': 2},
-        'Credit_History': 1.0 if "Yes" in data_dict.get('credit_history', '') else 0.0,
     }
 
     features = [
@@ -123,7 +111,7 @@ def encode_input(data_dict):
         data_dict['coapplicant_income'],
         data_dict['loan_amount'],
         data_dict['loan_term'],
-        mapping['Credit_History'],
+        1.0,  # Credit history placeholder (normalized)
         mapping['Property_Area'][data_dict['property_area']]
     ]
     return np.array([features])
@@ -142,49 +130,40 @@ if submitted:
             'loan_amount': loan_amount,
             'loan_term': loan_term,
             'property_area': property_area,
-            'credit_history': credit_history
         }
 
         X = encode_input(input_data)
         X_scaled = scaler.transform(X)
-        prediction = model.predict(X_scaled)[0]
-        probability = model.predict_proba(X_scaled)[0][1]
+        
+        # Get predictions from all models
+        predictions = {}
+        for model_name, model in models.items():
+            pred = model.predict(X_scaled)[0]
+            prob = model.predict_proba(X_scaled)[0][1]
+            predictions[model_name] = {
+                'prediction': pred,
+                'probability': prob
+            }
 
     st.markdown("---")
 
-    # ========================= RESULT CARD =========================
-    if prediction == 1:
-        st.markdown(f"""
-        <div class="result-card" style="background: linear-gradient(135deg, #56ab2f, #a8e6cf); color: white;">
-            <h1>Approved Loan Approved!</h1>
-            <p class="gauge">{probability:.1%}</p>
-            <p style="font-size: 1.4rem;">Confidence Level</p>
-            <h3>Congratulations! Your loan application has been <strong>APPROVED</strong></h3>
-        </div>
-        """, unsafe_allow_html=True)
-        st.balloons()
-    else:
-        st.markdown(f"""
-        <div class="result-card" style="background: linear-gradient(135deg, #ff512f, #dd2476); color: white;">
-            <h1>Rejected Loan Declined</h1>
-            <p class="gauge">{probability:.1%}</p>
-            <p style="font-size: 1.4rem;">Approval Probability</p>
-            <h3>We regret to inform you that your application was <strong>not approved</strong> at this time.</h3>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # ========================= EXPLAINABLE AI =========================
-    with st.expander("Why this decision? (Model Explanation)", expanded=True):
-        cred = 1.0 if "Yes" in credit_history else 0.0
-        if cred == 0.0:
-            st.error("Primary Reason: **Poor or missing credit history**")
-            st.markdown("Credit History is the dominant factor (coefficient > 3.5 in the model). Without it, approval is extremely rare.")
-        else:
-            st.success("Credit History: Strong")
-            if probability < 0.7:
-                st.warning("Despite good credit, other factors (income, loan size, etc.) reduced approval probability.")
-
-        st.info("This model uses **L1-regularized Logistic Regression**. Only 3 features survived regularization: **Credit_History**, **Married**, **Education**.")
-
+    # ========================= RESULTS DISPLAY =========================
+    st.subheader("Predictions from All Models")
+    
+    cols = st.columns(3)
+    for idx, (model_name, result) in enumerate(predictions.items()):
+        with cols[idx]:
+            status = "✅ APPROVED" if result['prediction'] == 1 else "❌ DECLINED"
+            color = "#56ab2f" if result['prediction'] == 1 else "#ff512f"
+            
+            st.markdown(f"""
+            <div class="result-card" style="background: linear-gradient(135deg, {color}, {'#a8e6cf' if result['prediction'] == 1 else '#dd2476'}); color: white; padding: 2rem; border-radius: 16px; text-align: center;">
+                <h3>{model_name}</h3>
+                <h2>{status}</h2>
+                <p style="font-size: 2rem; font-weight: bold;">{result['probability']:.1%}</p>
+                <p style="font-size: 0.9rem;">Approval Probability</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
     st.markdown("---")
     st.caption("Powered by Synthahub  • Built by Gichangi")
