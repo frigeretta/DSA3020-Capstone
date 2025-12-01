@@ -8,7 +8,7 @@ from pathlib import Path
 st.set_page_config(
     page_title="LoanGuard Pro • Instant Approval Predictor",
     page_icon="🏦",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -16,13 +16,13 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem 0;}
-    .block-container {max-width: 900px; padding-top: 2rem; padding-bottom: 2rem;}
+    .block-container {max-width: 1200px; padding-top: 2rem; padding-bottom: 2rem;}
     .header-title {font-size: 3rem !important; font-weight: 800; color: white; text-align: center; text-shadow: 0 4px 10px rgba(0,0,0,0.3);}
     .header-subtitle {color: #e0e7ff; text-align: center; font-size: 1.3rem; margin-bottom: 2rem;}
-    .credit-critical {font-size: 1.4rem; font-weight: bold; padding: 1rem; border-radius: 12px; text-align: center;}
     .stButton>button {background: #4CAF50; color: white; font-weight: bold; height: 3em; border-radius: 12px;}
     .result-card {padding: 2rem; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);}
-    .gauge {font-size: 4rem; font-weight: bold;}
+    .approved {background: linear-gradient(135deg, #56ab2f, #a8e6cf) !important; color: white;}
+    .declined {background: linear-gradient(135deg, #ff512f, #dd2476) !important; color: white;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -39,39 +39,31 @@ def load_model_assets():
         scaler = joblib.load(app_dir / "scaler.pkl")
         return models, scaler
     except FileNotFoundError as e:
-        st.error(f"Model files not found. Please ensure all model files are in the loandata directory. Error: {e}")
+        st.error(f"Model files not found: {e}")
         st.stop()
 
 models, scaler = load_model_assets()
 
-# Feature order (MUST match training!)
-FEATURE_COLUMNS = [
-    'Gender', 'Married', 'Dependents', 'Education', 'Self_Employed',
-    'ApplicantIncome', 'CoapplicantIncome', 'LoanAmount',
-    'Loan_Amount_Term', 'Credit_History', 'Property_Area'
-]
-
 # ========================= HEADER =========================
 st.markdown("<h1 class='header-title'>🏦 LoanGuard Pro</h1>", unsafe_allow_html=True)
-st.markdown("<p class='header-subtitle'>Instant • Accurate • AI-Powered Loan Eligibility Prediction</p>", unsafe_allow_html=True)
+st.markdown("<p class='header-subtitle'>Multi-Model • Accurate • AI-Powered Loan Eligibility Prediction</p>", unsafe_allow_html=True)
 
 # ========================= SIDEBAR INFO =========================
-with st.expander("Model Insights", expanded=False):
-    st.success("**Models:** Logistic Regression • Decision Tree • Gradient Boosting")
-    st.info("All models are ensembled to provide diverse predictions for robustness.")
-    st.markdown("""
-    ### Feature Importance:
-    - **Credit History** - Primary factor
-    - **Married Status** - Secondary factor
-    - **Education Level** - Tertiary factor
-    - All other features considered for comprehensive analysis
+with st.expander("ℹ️ Model Information", expanded=False):
+    st.info("""
+    **Three Independent Models:**
+    - **Logistic Regression**: Fast, interpretable, good baseline
+    - **Decision Tree**: Captures non-linear patterns
+    - **Gradient Boosting**: Ensemble method, high accuracy
+    
+    Compare predictions across models for robust decision-making.
     """)
 
 st.markdown("---")
 
 # ========================= INPUT FORM =========================
 with st.form("loan_application_form", clear_on_submit=False):
-    st.subheader("Applicant Information")
+    st.subheader("📋 Applicant Information")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -88,7 +80,7 @@ with st.form("loan_application_form", clear_on_submit=False):
         loan_term = st.selectbox("Loan Term (Months)", [360, 240, 180, 120, 84, 60, 36], index=0)
         property_area = st.selectbox("Property Area", ["Urban", "Semiurban", "Rural"], index=1)
 
-    submitted = st.form_submit_button("Predict Eligibility Now", use_container_width=True)
+    submitted = st.form_submit_button("🔍 Predict Eligibility", use_container_width=True)
 
 # ========================= ENCODING FUNCTION =========================
 def encode_input(data_dict):
@@ -99,6 +91,7 @@ def encode_input(data_dict):
         'Education': {'Graduate': 0, 'Not Graduate': 1},
         'Self_Employed': {'Yes': 1, 'No': 0},
         'Property_Area': {'Rural': 0, 'Semiurban': 1, 'Urban': 2},
+        'Credit_History': {'Good': 1.0, 'Bad': 0.0},
     }
 
     features = [
@@ -111,14 +104,14 @@ def encode_input(data_dict):
         data_dict['coapplicant_income'],
         data_dict['loan_amount'],
         data_dict['loan_term'],
-        1.0,  # Credit history placeholder (normalized)
+        mapping['Credit_History'][data_dict['credit_history']],
         mapping['Property_Area'][data_dict['property_area']]
     ]
     return np.array([features])
 
 # ========================= REAL-TIME PREDICTION =========================
 if submitted:
-    with st.spinner("Analyzing application..."):
+    with st.spinner("🔄 Analyzing application across all models..."):
         input_data = {
             'gender': gender,
             'married': married,
@@ -130,6 +123,7 @@ if submitted:
             'loan_amount': loan_amount,
             'loan_term': loan_term,
             'property_area': property_area,
+            'credit_history': 'Good'
         }
 
         X = encode_input(input_data)
@@ -148,22 +142,37 @@ if submitted:
     st.markdown("---")
 
     # ========================= RESULTS DISPLAY =========================
-    st.subheader("Predictions from All Models")
+    st.subheader("📊 Predictions from All Models")
     
     cols = st.columns(3)
     for idx, (model_name, result) in enumerate(predictions.items()):
         with cols[idx]:
             status = "✅ APPROVED" if result['prediction'] == 1 else "❌ DECLINED"
-            color = "#56ab2f" if result['prediction'] == 1 else "#ff512f"
+            card_class = "approved" if result['prediction'] == 1 else "declined"
             
             st.markdown(f"""
-            <div class="result-card" style="background: linear-gradient(135deg, {color}, {'#a8e6cf' if result['prediction'] == 1 else '#dd2476'}); color: white; padding: 2rem; border-radius: 16px; text-align: center;">
+            <div class="result-card {card_class}">
                 <h3>{model_name}</h3>
-                <h2>{status}</h2>
-                <p style="font-size: 2rem; font-weight: bold;">{result['probability']:.1%}</p>
-                <p style="font-size: 0.9rem;">Approval Probability</p>
+                <h2 style="margin: 1rem 0;">{status}</h2>
+                <p style="font-size: 2.5rem; font-weight: bold; margin: 0.5rem 0;">{result['probability']:.1%}</p>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Approval Probability</p>
             </div>
             """, unsafe_allow_html=True)
     
     st.markdown("---")
-    st.caption("Powered by Synthahub  • Built by Gichangi")
+    
+    # ========================= SUMMARY STATISTICS =========================
+    avg_approval = np.mean([p['probability'] for p in predictions.values()])
+    consensus = sum([p['prediction'] for p in predictions.values()])
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Average Approval Rate", f"{avg_approval:.1%}")
+    with col2:
+        st.metric("Models Approving", f"{consensus}/3")
+    with col3:
+        consensus_decision = "🟢 MAJORITY APPROVED" if consensus >= 2 else "🔴 MAJORITY DECLINED"
+        st.markdown(f"### {consensus_decision}")
+    
+    st.markdown("---")
+    st.caption("🏦 LoanGuard Pro • Multi-Model Ensemble Decision Support • Built by Gichangi")
