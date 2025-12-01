@@ -239,7 +239,7 @@ for Loan Approval Predictions</title>
   <p class="fragment">ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History</p>
   <p class="fragment">All show strong right skew or imbalance.</p>
   <p class="fragment">We visualized these using histograms and KDE curves:</p>
-  <img class="fragment" src="images/Histogram of Numerical cols.png" alt="Numeric histograms">
+  <img class="fragment" src="Images/Histogram of Numerical cols.png" alt="Numeric histograms">
 </section>
 
 <!-- ===================== EDA – CATEGORICAL ===================== -->
@@ -247,7 +247,7 @@ for Loan Approval Predictions</title>
   <h3>Categorical Variables</h3>
   <p class="fragment">Most applicants are male, married, graduates, and not self-employed.</p>
   <p class="fragment">Loan approvals (Y) outnumber rejections (N), creating class imbalance.</p>
-  <img class="fragment" src="images/Countplots of categorical cols.png" alt="Categorical histograms">
+  <img class="fragment" src="Images/Countplots of categorical cols.png" alt="Categorical histograms">
 </section>
 
 <section>
@@ -257,7 +257,7 @@ for Loan Approval Predictions</title>
     <li class="fragment">Married, graduates, and applicants with 0 dependents show higher approval rates.</li>
     <li class="fragment">Semiurban properties have slightly higher approvals than urban and rural.</li>
   </ul>
-  <img class="fragment" src="images/Categorical_cols vs Loan Status.png" alt="Categorical vs Loan_Status">
+  <img class="fragment" src="Images/Categorical_cols vs Loan Status.png" alt="Categorical vs Loan_Status">
 </section>
 
 <section>
@@ -268,7 +268,7 @@ for Loan Approval Predictions</title>
     <li class="fragment">Most other correlations are low, suggesting non-linear effects.</li>
   </ul>
   
-  <img class="fragment" src="images/correlation heatmap.png" alt="Correlation heatmap">
+  <img class="fragment" src="Images/correlation heatmap.png" alt="Correlation heatmap">
 </section>
 
 <!-- ===================== MODEL DEVELOPMENT ===================== -->
@@ -303,6 +303,20 @@ for Loan Approval Predictions</title>
     <li class="fragment"><strong>Education</strong> → small effect.</li>
   </ul>
 </section>
+
+<section>
+  <h3>Confusion Matrix – Logistic Regression</h3>
+  <p class="fragment">The confusion matrix helps us evaluate how well the Logistic Regression model classifies approved vs rejected loan applications.</p>
+  <ul>
+    <li class="fragment">True Positives (TP): correctly predicted approved loans.</li>
+    <li class="fragment">True Negatives (TN): correctly predicted rejected loans.</li>
+    <li class="fragment">False Positives (FP): loans incorrectly approved (riskier misclassification).</li>
+    <li class="fragment">False Negatives (FN): eligible applicants incorrectly rejected.</li>
+  </ul>
+  <p class="fragment">For a banking environment, minimizing <strong class="accent">False Negatives</strong> is important to avoid turning away good customers.</p>
+  <img class="fragment" src="Images/confusionmatrix.png" alt="Logistic Regression Confusion Matrix">
+</section>
+
 
 <!-- ===================== COMPARATIVE RESULTS ===================== -->
 <section>
